@@ -1,25 +1,276 @@
-# Invoice Canister
+# Invoice Canister Implementation
+This repo provides clear instructions on how to implement Kyle Peacock's original Invoice Canister, and how to use it for local development.
 
-This project provides a simple interface for creating and paying invoices in various tokens on the Internet Computer. It is a custodial solution, intended to be a simple, drop-in payments solution for any canister. To read more about the design of the canister, see the [Design Doc](./docs/DesignDoc.md).
 
-## Integrating with the Invoice Canister
+## How it works
+![Overchute Invoice Design](https://cdn.discordapp.com/attachments/911795402339147826/964536456146198558/unknown.png)
 
-Include this code in your `dfx.json` and follow our `self-hosted` example: TODO
+The Invoice Canister, at it's core, contains two main functions, the `create_invoice()`, which returns a type *CreateInvoiceResult* and the `verify_invoice()` function, which returns a type *VerifyInvoiceResult*. 
+## For Local Deployment
 
-## Getting Started - Development
+## Types
+```
+public type Token = {
+    symbol : Text;
+  };
+  public type TokenVerbose = {
+    symbol : Text;
+    decimals : Int;
+    meta : ?{
+      Issuer : Text;
+    };
+  };
+  public type AccountIdentifier = {
+    #text : Text;
+    #principal : Principal;
+    #blob : Blob;
+  };
+  public type Details = {
+    description : Text;
+    meta : Blob;
+  };
+  public type Permissions = {
+      canGet : [Principal];
+      canVerify : [Principal];
+  };
+  public type Invoice = {
+    id : Nat;
+    creator : Principal;
+    details : ?Details;
+    permissions : ?Permissions;
+    amount : Nat;
+    amountPaid : Nat;
+    token : TokenVerbose;
+    verifiedAtTime : ?Time.Time;
+    paid : Bool;
+    destination : AccountIdentifier;
+  };
+// #endregion
 
-Make sure you have followed the DFX installation instructions from https://smartcontracts.org.
+/**
+* Service Args and Result Types
+*/
 
-Run the `install-local.sh` script to install the ICP ledger and and the invoice canister on your device. You can make calls using the `dfx` sdk, or you can see test cases running through the flows under the `test` directory.
+// #region create_invoice
+  public type CreateInvoiceArgs = {
+    amount : Nat;
+    token : Token;
+    permissions: ?Permissions;
+    details : ?Details;
+  };
+  public type CreateInvoiceResult = Result.Result<CreateInvoiceSuccess, CreateInvoiceErr>;
+  public type CreateInvoiceSuccess = {
+    invoice : Invoice;
+  };
+  public type CreateInvoiceErr = {
+    message : ?Text;
+    kind : {
+      #BadSize;
+      #InvalidToken;
+      #InvalidAmount;
+      #InvalidDestination;
+      #InvalidDetails;
+      #MaxInvoicesReached;
+      #Other;
+    };
+  };
+// #endregion
 
-## Testing
+// #region Get Destination Account Identifier
+  public type GetDestinationAccountIdentifierArgs = {
+    token : Token;
+    caller : Principal;
+    invoiceId : Nat;
+  };
+  public type GetDestinationAccountIdentifierResult = Result.Result<GetDestinationAccountIdentifierSuccess, GetDestinationAccountIdentifierErr>;
+  public type GetDestinationAccountIdentifierSuccess = {
+    accountIdentifier : AccountIdentifier;
+  };
+  public type GetDestinationAccountIdentifierErr = {
+    message : ?Text;
+    kind : {
+        #InvalidToken;
+        #InvalidInvoiceId;
+        #Other;
+    };
+  };
+// #endregion
 
-To test, you will need to install `moc` from the latest `motoko-<system>-<version>.tar.gz` release. https://github.com/dfinity/motoko/releases.
+// #region get_invoice
+  public type GetInvoiceArgs = {
+    id : Nat;
+  };
+  public type GetInvoiceResult = Result.Result<GetInvoiceSuccess, GetInvoiceErr>;
+  public type GetInvoiceSuccess = {
+    invoice : Invoice;
+  };
+  public type GetInvoiceErr = {
+    message : ?Text;
+    kind : {
+      #InvalidInvoiceId;
+      #NotFound;
+      #NotAuthorized;
+      #Other;
+    };
+  };
+// #endregion
 
-Then, install Vessel following the guide at https://github.com/dfinity/vessel.
+// #region get_balance
+  public type GetBalanceArgs = {
+    token : Token;
+  };
+  public type GetBalanceResult = Result.Result<GetBalanceSuccess, GetBalanceErr>;
+  public type GetBalanceSuccess = {
+    balance : Nat;
+  };
+  public type GetBalanceErr = {
+    message : ?Text;
+    kind : {
+      #InvalidToken;
+      #NotFound;
+      #Other;
+    };
+  };
+// #endregion
 
-You will also need to install `wasmtime`. For macOS, you can install with `brew install wasmtime`. For Linux, you can install with `sudo apt-get install wasmtime`.
+// #region verify_invoice
+  public type VerifyInvoiceArgs = {
+    id : Nat;
+  };
+  public type VerifyInvoiceResult = Result.Result<VerifyInvoiceSuccess, VerifyInvoiceErr>;
+  public type VerifyInvoiceSuccess = {
+    #Paid : {
+      invoice : Invoice;
+    };
+    #AlreadyVerified : {
+      invoice : Invoice;
+    };
+  };
+  type VerifyInvoiceErr = {
+    message : ?Text;
+    kind : {
+      #InvalidInvoiceId;
+      #NotFound;
+      #NotYetPaid;
+      #NotAuthorized;
+      #Expired;
+      #TransferError;
+      #InvalidToken;
+      #InvalidAccount;
+      #Other;
+    };
+  };
+// #endregion
 
-To run unit tests, use `make test`.
+// #region transfer
+  public type TransferArgs = {
+    amount : Nat;
+    token : Token;
+    destination : AccountIdentifier;
+  };
+  public type TransferResult = Result.Result<TransferSuccess, TransferError>;
+  public type TransferSuccess = {
+    blockHeight : Nat64;
+  };
+  public type TransferError = {
+    message : ?Text;
+    kind : {
+      #BadFee;
+      #InsufficientFunds;
+      #InvalidToken;
+      #InvalidDestination;
+      #Other;
+    };
+  };
+// #endregion
 
-To run the end-to-end JavaScript tests, first install fresh with with `./install-local.sh`. Then, run `npm test`.
+// #region get_caller_identifier
+  public type GetAccountIdentifierArgs = {
+    token : Token;
+    principal : Principal;
+  };
+  public type GetAccountIdentifierResult = Result.Result<GetAccountIdentifierSuccess, GetAccountIdentifierErr>;
+  public type GetAccountIdentifierSuccess = {
+    accountIdentifier : AccountIdentifier;
+  };
+  public type GetAccountIdentifierErr = {
+    message : ?Text;
+    kind : {
+      #InvalidToken;
+      #Other;
+    };
+  };
+// #endregion
+
+// #region accountIdentifierToBlob
+  public type AccountIdentifierToBlobArgs = {
+    accountIdentifier : AccountIdentifier;
+    canisterId : ?Principal;
+  };
+  public type AccountIdentifierToBlobResult = Result.Result<AccountIdentifierToBlobSuccess, AccountIdentifierToBlobErr>;
+  public type AccountIdentifierToBlobSuccess = Blob;
+  public type AccountIdentifierToBlobErr = {
+    message : ?Text;
+    kind : {
+      #InvalidAccountIdentifier;
+      #Other;
+    };
+  };
+// #endregion
+
+// #region accountIdentifierToText
+  public type AccountIdentifierToTextArgs = {
+    accountIdentifier : AccountIdentifier;
+    canisterId : ?Principal;
+  };
+  public type AccountIdentifierToTextResult = Result.Result<AccountIdentifierToTextSuccess, AccountIdentifierToTextErr>;
+  public type AccountIdentifierToTextSuccess = Text;
+  public type AccountIdentifierToTextErr = {
+    message : ?Text;
+    kind : {
+      #InvalidAccountIdentifier;
+      #Other;
+    };
+  };
+// #endregion
+
+// #region ICP Transfer
+  public type Memo = Nat64;
+  public type SubAccount = Blob;
+  public type TimeStamp = {
+    timestamp_nanos : Nat64;
+  };
+  public type ICPTokens = {
+    e8s : Nat64;
+  };
+  public type ICPTransferError = {
+    message : ?Text;
+    kind : {
+      #BadFee : {
+        expected_fee : ICPTokens;
+      };
+      #InsufficientFunds : {
+        balance : ICPTokens;
+      };
+      #TxTooOld : {
+        allowed_window_nanos : Nat64;
+      };
+      #TxCreatedInFuture;
+      #TxDuplicate : {
+        duplicate_of : Nat;
+      };
+      #Other;
+    }
+  };
+
+  public type ICPTransferArgs = {
+    memo : Memo;
+    amount : ICPTokens;
+    fee : ICPTokens;
+    from_subaccount : ?SubAccount;
+    to : AccountIdentifier;
+    created_at_time : ?TimeStamp;
+  };
+
+  public type ICPTransferResult = Result.Result<TransferSuccess, ICPTransferError>;
+  ```
