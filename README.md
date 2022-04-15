@@ -3,7 +3,8 @@ This repo provides clear instructions on how to implement Kyle Peacock's origina
 
 
 ## How it works
-![image](https://user-images.githubusercontent.com/59488791/163594516-41eba2b7-6114-4ba2-84f3-dc07dcbefe76.png)
+![image](https://user-images.githubusercontent.com/59488791/163595058-837926e1-b174-49ce-8a3a-73e4658cbb73.png)
+*Example of the userflow in Overchute's Invoice implementation*
 
 
 The Invoice Canister, at it's core, contains two main functions, the `create_invoice()`, which returns a type *CreateInvoiceResult* and the `verify_invoice()` function, which returns a type *VerifyInvoiceResult*. 
