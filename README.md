@@ -6,9 +6,14 @@ This repo provides clear instructions on how to implement Kyle Peacock's origina
 ![image](https://user-images.githubusercontent.com/59488791/163595058-837926e1-b174-49ce-8a3a-73e4658cbb73.png)
 *Example of the userflow in Overchute's Invoice implementation*
 
+The Invoice Canister, at it's core, takes a two step approach to processing payments, the first one just creating an object will all the necessary information and the second one just checking that the ICP has been received, thus as such it contains two main functions representing both of these steps, the `create_invoice()`, which returns a type *CreateInvoiceResult* and the `verify_invoice()` function, which returns a type *VerifyInvoiceResult*.
+It's in between both steps that the user is requested to sign the transaction. 
+#### Step 0: Initiating payment flow from the frontend
+The first thing is initiating
 
-The Invoice Canister, at it's core, contains two main functions, the `create_invoice()`, which returns a type *CreateInvoiceResult* and the `verify_invoice()` function, which returns a type *VerifyInvoiceResult*. 
-## For Local Deployment
+#### Step 1: The `create_invoice()` function
+
+## For Local Development
 
 ## Types
 ```
