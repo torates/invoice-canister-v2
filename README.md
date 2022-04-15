@@ -3,7 +3,8 @@ This repo provides clear instructions on how to implement Kyle Peacock's origina
 
 
 ## How it works
-(https://cdn.discordapp.com/attachments/911795402339147826/964536456146198558/unknown.png)
+![image](https://user-images.githubusercontent.com/59488791/163594516-41eba2b7-6114-4ba2-84f3-dc07dcbefe76.png)
+
 
 The Invoice Canister, at it's core, contains two main functions, the `create_invoice()`, which returns a type *CreateInvoiceResult* and the `verify_invoice()` function, which returns a type *VerifyInvoiceResult*. 
 ## For Local Deployment
