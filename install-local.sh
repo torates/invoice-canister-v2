@@ -1,5 +1,5 @@
 dfx stop
-dfx start --background --clean
+dfx start --background --emulator --clean
 
 dfx identity new minter
 dfx identity use minter

@@ -74,9 +74,42 @@ The ledger folder contains a wasm dump of the ledger canister (under 2mb in size
 
 *The interface provided here only has the ```transfer()``` method and the ```account_balance()``` method.*
 
-In the original repo (https://github.com/dfinity/invoice-canister), it is also included a install-local.sh script. This script will install the invoice and ledger canister, as well as mint 100 ICP to the default identity account ID, thus simplifying the process by a lot.
+In the original repo (https://github.com/dfinity/invoice-canister), it is also included a install-local.sh script. This script will install the invoice and ledger canister, as well as mint 100 ICP to the default identity account ID, automatically. The amount of ICP to be minted can be freely edited in the script.
 
-The amount of ICP to be minted can be freely edited in the script.
+After that, the invoice canister can be called using ```dfx```, in the following way:
+
+```
+dfx canister call invoice create_invoice [create invoice args]
+```
+
+If needed, it is possible to deploy the exampleseller canister to simplify invoice interactions (so there is no need to pass a ```createInvoiceArgs``` record through the console), by adding the following code to the dfx.json
+```
+  "exampleseller": {
+      "main": "src/examplewrap/exampleseller.mo",
+      "type": "motoko",
+  }
+```
+
+### Examples:
+
+Creating an invoice through dfx (with the exampleseller deployed)
+```
+  dfx canister call exampleseller create_invoice
+```
+
+Creating an invoice through dfx (without the exampleseller)
+```
+  dfx canister call invoice create_invoice  '(record {token = record {symbol = "ICP"}; amount = 10})'
+
+  //creates an invoice of the ICP token with 10 ICP to be paid
+```
+
+Attempting to verify invoice through dfx (without the exampleseller)
+```
+  dfx canister call invoice verify_invoice  '(record {id = 0})'
+
+  //tries to verify the invoice of id 0
+```
 
 ## Types
 ```
