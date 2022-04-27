@@ -8,10 +8,44 @@ This repo provides clear instructions on how to implement Kyle Peacock's origina
 
 The Invoice Canister, at it's core, takes a two step approach to processing payments, the first one just creating an object will all the necessary information and the second one just checking that the ICP has been received, thus as such it contains two main functions representing both of these steps, the `create_invoice()`, which returns a type *CreateInvoiceResult* and the `verify_invoice()` function, which returns a type *VerifyInvoiceResult*.
 It's in between both steps that the user is requested to sign the transaction. 
+
+PD. Keep in mind this is NOT a fixed design. The invoice canister can be changed at will to serve the desired purposes of a project - *that is the beauty of coding*
+
 #### Step 0: Initiating payment flow from the frontend
-The first thing is initiating
+The first thing is initiating the payment flow. This can be achieved with an input/form in the frontend.
+
+For example, in Overchute's CrowsdsaleContribution form, the user is prompted to type an amount of ICP to contribute, this is then sent to the `create_invoice()` alongside all the other desired information (for example, the crowdsale that it's contributing to), and added to the created `Invoice`.
 
 #### Step 1: The `create_invoice()` function
+As shown before, the `create_invoice()` function can be made to accept arguments, for them to be added to the returned `Invoice` type if process is successful.
+
+The returned invoice has a `destination` account ID, that by default is generated using the principal of the invoice canister plus using the caller and the Invoice `id` for the subaccount.
+
+#### Step 2: Asking for payment
+After the `Invoice` is created, the next step is asking for a transfer to the destination account.
+
+For example, with Plug wallet it would look something similar to:
+
+```
+
+  let invoice = await actor.create_invoice(crodwsaleId, contribution);
+
+  let destinationInvoice = invoice.ok['invoice']
+  let destinationAcc = destinationInvoice.destination['text']
+
+  const newcontribution = contribution * 100_000_000
+  const requestTransferArg = {
+    to: destinationAcc, //transfer to the destination account
+    amount: newcontribution,
+  };
+  const transfer = await window.ic?.plug?.requestTransfer(requestTransferArg);
+
+```
+This is creating an invoice for the payment, and then sending a ```contribution``` amount of ICP to the generated account ID.
+
+#### Step 3: Verifying the invoice
+
+The ```verify_invoice()```
 
 ## For Local Development
 
