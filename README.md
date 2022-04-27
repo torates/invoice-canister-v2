@@ -89,6 +89,7 @@ If needed, it is possible to deploy the exampleseller canister to simplify invoi
       "type": "motoko",
   }
 ```
+I personally do not recommend working with the invoice canister locally, as it is a very time consuming task and the flow is very different than on mainnet. I think it is easier to just deploy an invoice canister to the network, and work on integrating it to the existing app frontend/backend as it is needed.
 
 ### Examples:
 
