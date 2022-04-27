@@ -45,9 +45,38 @@ This is creating an invoice for the payment, and then sending a ```contribution`
 
 #### Step 3: Verifying the invoice
 
-The ```verify_invoice()```
+The ```verify_invoice()``` is called after payment is sent to the destination account.
+
+This will return an error if the user does not have the required permissions, which are supplied when creating an invoice, these permissions are of the type 
+
+```
+  public type Permissions = {
+      canGet : [Principal];
+      canVerify : [Principal];
+  };
+```
+
+The ```verify_invoice()``` function is the most customizable function of the whole API, and is where you want to call whatever function (or functions) required payment. For example, in the case of Overchute, it is after the payment is verified that the ```makeContribution()``` function needs to be called, thus adding the contribution amount to the crowdsale.
+
+Keep in mind the funds are STILL on the ```destination``` account ID, controlled by the Invoice canister, thus it is in this step that if required the funds should be sent to another Account, escrow system, or pool of funds.
+
 
 ## For Local Development
+The ledger folder contains a wasm dump of the ledger canister (under 2mb in size, as so to work with the maximum payload constraints of the Internet Computer) - which needs to be deployed when working locally. This can be done by editing the dfx.json file and adding the following code:
+
+```
+  "ledger": {
+      "type": "custom",
+      "candid": "src/ledger/ledger.did",
+      "wasm": "src/ledger/ledger.wasm"
+  }
+```
+
+*The interface provided here only has the ```transfer()``` method and the ```account_balance()``` method.*
+
+In the original repo (https://github.com/dfinity/invoice-canister), it is also included a install-local.sh script. This script will install the invoice and ledger canister, as well as mint 100 ICP to the default identity account ID, thus simplifying the process by a lot.
+
+The amount of ICP to be minted can be freely edited in the script.
 
 ## Types
 ```

@@ -189,6 +189,7 @@ module {
             let verifiedAtTime : ?Time.Time = ?Time.now();
 
             // TODO Transfer funds to default subaccount of invoice creator
+            //this part is in the original design by kyle
             let subaccount : SubAccount = U.generateInvoiceSubaccount({ caller = i.creator; id = i.id });
 
             let transferResult = await transfer({
