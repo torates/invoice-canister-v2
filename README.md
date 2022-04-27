@@ -60,6 +60,29 @@ The ```verify_invoice()``` function is the most customizable function of the who
 
 Keep in mind the funds are STILL on the ```destination``` account ID, controlled by the Invoice canister, thus it is in this step that if required the funds should be sent to another Account, escrow system, or pool of funds.
 
+Sending funds from this account to another account (from X canister to Y canister), can be achieved by calling the ```transfer``` method on the ICPLedger.mo file (or to the ledger canister directly). For this, the following type needs to passed:
+
+```
+  public type TransferArgs = {
+    memo : Memo;
+    amount : Tokens;
+    fee : Tokens;
+    from_subaccount : ?SubAccount;
+    to : AccountIdentifier;
+    created_at_time : ?TimeStamp;
+  };
+```
+
+This will send ICP from a subaccount controlled by the caller's account ID to a target account ID (for example, canister Y pool account ID). For example, to get the funds out of a specific invoice destination account, we need to pass the subaccount used to generate that destination account, as follows:
+
+```
+  from_subaccount = U.generateInvoiceSubaccount({
+      caller = msg.caller; //the caller of the function 
+      id = 0; //invoice.id also works, if invoice is passed
+  });
+```
+If using something like the example seller, the caller needs to be the canister-id calling the invoice canister instead.
+
 
 ## For Local Development
 The ledger folder contains a wasm dump of the ledger canister (under 2mb in size, as so to work with the maximum payload constraints of the Internet Computer) - which needs to be deployed when working locally. This can be done by editing the dfx.json file and adding the following code:
